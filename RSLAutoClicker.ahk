@@ -3,81 +3,172 @@
 #NoEnv
 SetWorkingDir %A_ScriptDir%
 SetBatchLines -1
-
+;##########################################################################################################>> Includes
+#Include src\libs\GDip.ahk
+#Include src\utils\flatSwitch.ahk
+#Include src\utils\flatButton.ahk
+;##########################################################################################################<< EOF Includes
+;##########################################################################################################>> Presets
+GDIP_Startup()
+global HB_Button:=[]
 StatusBaseText := "Press 'Activate' to run programm..."
+windowName := "Main"
+;##########################################################################################################<< EOF Presets
 
+
+;##########################################################################################################>> GUI 
 Gui Main: New, +LabelMain +hWndhMainWnd -MaximizeBox
+Gui, Color, 333333
+;Gui, Main:+AlwaysOnTop
 
-Gui Add, Button, hWndbtnActivate vBtnActivate gBtnActivate x147 y8 w80 h30, &Activate
-Gui Add, Button, hWndbtnDeActivate vBtnDeActivate gBtnDeActivate x147 y48 w80 h30 Disabled , &De-Activate
+; Allow Selling
+allowSelling := New Flat_Switch(x := 10, y := 10, w := 120, Text := "Sell Items", Font:="Arial", FontSize:= "12 Bold", FontColor:="FFFFFF", Window := windowName, Background_Color := "333333", State := 0, Label := "allowSelling")
+; Set Window to Top
+topWindow := New Flat_Switch(x := 10, y += 35, w := 130, Text := "Always on top", Font:="Arial", FontSize:= "12 Bold", FontColor:="FFFFFF", Window := windowName, Background_Color := "333333", State := 0, Label := "AlwaysOnTop")
+; Stop if energy is empty
+noEnergy := New Flat_Switch(10, 120, w := 170, Text := "Stop on empty Energy", Font:="Arial", FontSize:= "12 Bold", FontColor:="FFFFFF", Window := windowName, Background_Color := "333333", State := 0, Label := "NoEnergy")
+; Limit rounds
+runLimit := New Flat_Switch(60, 200, w := 130, Text := "Limit Runs", Font:="Arial", FontSize:= "12 Bold", FontColor:="FFFFFF", Window := windowName, Background_Color := "333333", State := 0, Label := "LimitRun")
 
-Gui Add, CheckBox, vAutoPlay gAutoPlay x25 y8 w120 h30 Checked , Auto
+; Activate Button
+HB_Button.Push( New Flat_Button( x:=147  , y := 8 , w := 80, h := 30 , Button_Color := "865ABB" , Button_Background_Color := "333333" , Text := "Activate" , Font := "Arial" , Font_Size := 10 " Bold" , Font_Color_Top := "888888" , Font_Color_Bottom := "111111" , Window := windowName, Label := "BtnActivate" , Default_Button := 1 , Roundness:=2 ) )
+; Disable Button
+HB_Button.Push( New Flat_Button( x:=147  , y +=35 , w := 80, h := 30 , Button_Color := "865ABB" , Button_Background_Color := "333333" , Text := "Deactivate" , Font := "Arial" , Font_Size := 10 " Bold" , Font_Color_Top := "888888" , Font_Color_Bottom := "111111" , Window := windowName , Label := "BtnDeActivate" , Default_Button := 1 , Roundness:=2 ) )
+; Resize Raid Window
+HB_Button.Push( New Flat_Button( x:=10  , y +=35  , w := 130, h := 30 , Button_Color := "865ABB" , Button_Background_Color := "333333" , Text := "Set Solution 1600x900" , Font := "Arial" , Font_Size := 10 " Bold" , Font_Color_Top := "888888" , Font_Color_Bottom := "111111" , Window := windowName , Label := "ResizeWindow" , Default_Button := 1 , Roundness:=2 ) )
+
+;Gui Add, Edit, x10 y150 w45 h18 Right number Limit5 vMyEdit, 8
+Gui Add, Edit, x10 y150 w45 h18 vMyEdit, 10
+Gui, Font, bold s10, Arial
+Gui Add, Text, x60 y151 w100 cFFFFFF, Energy / Run
+Gui, Font
+Gui Add, Edit, x10 y175 w45 h18 Right number Limit5 vAvailableEnergy, 130
+Gui, Font, bold s10, Arial
+Gui Add, Text, x60 y176 w150 cFFFFFF, Available Energy
+Gui, Font
+Gui Add, Edit, x10 y200 w45 h18 Right number Limit5 vMaxRuns disabled, 0
 
 Gui Add, StatusBar,, %StatusBaseText%
 
-Gui Show, w269 h131, RSL AutoClicker
+Gui Show, w240 h255, RSL AutoClicker
 
+;SetTimer, HB_Button_Hover, 50
 Return
-
-F1::
-;showTrayTip("Hello, my name is tooltip")
+;##########################################################################################################<< EOF GUI
+;##########################################################################################################>> Logics
+AllowSelling:
+    SoundBeep, 3000
+    ;MsgBox, % allowSelling.State
 return
 
-AutoPlay:
-Gui,Submit,NoHide
+AlwaysOnTop:
+if(topWindow.State=1)
+    Gui, Main:+AlwaysOnTop
+else
+    Gui, Main:-AlwaysOnTop
+return
+NoEnergy:
+    SoundBeep, 3000
+return
+
+LimitRun:
+if(runLimit.State == 1){
+    GuiControl, enable, MaxRuns
+}else{
+    GuiControl, disable, MaxRuns
+}
+return
+
+F1::
+GuiControlGet, MyEdit
+MsgBox, % "x" MyEdit "x"
+return
+
+ResizeWindow:
+GuiControl , % HB_Button[ A_GuiControl ].Window ": Focus" , % HB_Button[ A_GuiControl ].Hwnd
+    ; Add the button press function call and test
+    if( ! HB_Button[ A_GuiControl ].Draw_Pressed() )
+        return  
+WinMove, ahk_exe Raid.exe, , , , 1600, 900
 return
 
 BtnDeActivate:
+GuiControl , % HB_Button[ A_GuiControl ].Window ": Focus" , % HB_Button[ A_GuiControl ].Hwnd
+    ; Add the button press function call and test
+    if( ! HB_Button[ A_GuiControl ].Draw_Pressed() )
+        return  
+!A::
 BreakLoop = 1
-GuiControl, Enable, BtnActivate
-GuiControl, Disable, BtnDeActivate
 return
 
 BtnActivate:
-GuiControlGet, AutoPlay
-if !AutoPlay {
-    MsgBox,,Info, Mark Checkbox for Autoplay to Activate Tool
-    return
-}
+    GuiControl , % HB_Button[ A_GuiControl ].Window ": Focus" , % HB_Button[ A_GuiControl ].Hwnd
+    ; Add the button press function call and test
+    if( ! HB_Button[ A_GuiControl ].Draw_Pressed() )
+        return 
     
-GuiControl, Disable, BtnActivateGuiControl, Enable, BtnDeActivate
-
-loop
-{
-    if (BreakLoop == 1) {
-        SB_SetText(StatusBaseText)
-        BreakLoop = 0
-        break
-    }
-    
-    if WinActive("ahk_exe Raid.exe"){
-        
-        if roundEnd() {
-            if hasItemToSell(){
-                if (!sellItem()){
-                    showTrayTip("Item could not be sold. Abort loop.")
-                    break
-                }
-                    
-                nextRound()
-            }else{
-                nextRound()
-            } 
+    loop
+    {
+        if (BreakLoop == 1) {
+            SB_SetText(StatusBaseText)
+            BreakLoop = 0
+            break
         }
+        
+        if WinActive("ahk_exe Raid.exe"){
+            
+            if roundEnd() {
+                if (allowSelling.State == 1 && hasItemToSell()){
+                    if (!sellItem()){
+                        showTrayTip("Item could not be sold. Abort loop.")
+                        break
+                    }
+                        
+                    nextRound()
+                }else{
+                    nextRound()
+                } 
+            }
+        }
+        
+        SB_SetText("Running!")
+        
+        sleep, 2000
     }
-    
-    SB_SetText("Running!")
-    
-sleep, 2000
-}
+return
 
-Return
-
-;FUNCTIONS
-
+;##########################################################################################################<< EOF Logics
+;##########################################################################################################>> Functions
 nextRound() {
     ControlSend, , r, ahk_exe Raid.exe
+    
     ;ToolTip, sending 'R' to window
+}
+
+limits(){
+    if(noEnergy.State ==1){
+        stopOnEnergyLimit()
+    }
+    
+    if(runLimit.State == 1){
+        stopOnRunLimit()
+    }
+}
+
+stopOnEnergyLimit(){
+    Gui, Submit, NoHide
+    ;GuiControlGet, xxx,, EnergyPerRun
+    ;GuiControlGet, available, AvailableEnergy
+    ;GuiControlGet, max, MaxRuns
+    ;GuiControlGet EnergyPerRun
+    GuiControlGet AvailableEnergy
+    ;GuiControlGet MaxRuns
+    ;MsgBox, % "X" EnergyPerRun "X" 
+    MsgBox, % "X" AvailableEnergy "X" 
+    ;MsgBox, % "X" MaxRuns "X" 
+}
+
+stopOnRunLimit(){
 }
 
 imageScanner(section="items", doClick=true, delay=0){
@@ -119,7 +210,6 @@ sellItem(delayTime=1000){
     return true
 }
 
-
 openRaidWindow(){
     WinGetActiveTitle, Title
     WinActivate, ahk_exe Raid.exe
@@ -128,7 +218,7 @@ openRaidWindow(){
 showTrayTip(tipText, delay=2000){
     TrayTip, Message, % tipText, % delay
 }
-
+;##########################################################################################################<< EOF Functions
 MainEscape:
 MainClose:
     ExitApp

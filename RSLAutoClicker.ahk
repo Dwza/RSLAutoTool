@@ -19,12 +19,12 @@ windowName := "Main"
 ;##########################################################################################################>> GUI 
 Gui Main: New, +LabelMain +hWndhMainWnd -MaximizeBox
 Gui, Color, 333333
-;Gui, Main:+AlwaysOnTop
+Gui, Main:+AlwaysOnTop
 
 ; Allow Selling
 allowSelling := New Flat_Switch(x := 10, y := 10, w := 120, Text := "Sell Items", Font:="Arial", FontSize:= "12 Bold", FontColor:="FFFFFF", Window := windowName, Background_Color := "333333", State := 0, Label := "allowSelling")
 ; Set Window to Top
-topWindow := New Flat_Switch(x := 10, y += 35, w := 130, Text := "Always on top", Font:="Arial", FontSize:= "12 Bold", FontColor:="FFFFFF", Window := windowName, Background_Color := "333333", State := 0, Label := "AlwaysOnTop")
+topWindow := New Flat_Switch(x := 10, y += 35, w := 130, Text := "Always on top", Font:="Arial", FontSize:= "12 Bold", FontColor:="FFFFFF", Window := windowName, Background_Color := "333333", State := 1, Label := "AlwaysOnTop")
 ; Stop if energy is empty
 noEnergy := New Flat_Switch(10, 120, w := 170, Text := "Stop on empty Energy", Font:="Arial", FontSize:= "12 Bold", FontColor:="FFFFFF", Window := windowName, Background_Color := "333333", State := 0, Label := "NoEnergy")
 ; Limit rounds
@@ -110,13 +110,12 @@ BtnActivate:
     loop
     {
         if (BreakLoop == 1) {
-            SB_SetText(StatusBaseText)
+            SB_SetText("Programm automation aborted")
             BreakLoop = 0
             break
         }
         
         if WinActive("ahk_exe Raid.exe"){
-            
             if roundEnd() {
                 if (allowSelling.State == 1 && hasItemToSell()){
                     if (!sellItem()){
@@ -129,9 +128,10 @@ BtnActivate:
                     nextRound()
                 } 
             }
+        }else{
+            SB_SetText("Window has no focus")
         }
-        
-        SB_SetText("Running!")
+       
         
         sleep, 2000
     }
@@ -141,35 +141,34 @@ return
 ;##########################################################################################################>> Functions
 nextRound() {
     ControlSend, , r, ahk_exe Raid.exe
-    
-    ;ToolTip, sending 'R' to window
+    SB_SetText("Called next Round")
 }
 
-limits(){
-    if(noEnergy.State ==1){
-        stopOnEnergyLimit()
-    }
-    
-    if(runLimit.State == 1){
-        stopOnRunLimit()
-    }
-}
+;limits(){
+;    if(noEnergy.State ==1){
+;     stopOnEnergyLimit()
+;    }
+;    
+;    if(runLimit.State == 1){
+;        stopOnRunLimit()
+;    }
+;}
 
-stopOnEnergyLimit(){
-    Gui, Submit, NoHide
+;stopOnEnergyLimit(){
+;    Gui, Submit, NoHide
     ;GuiControlGet, xxx,, EnergyPerRun
     ;GuiControlGet, available, AvailableEnergy
     ;GuiControlGet, max, MaxRuns
     ;GuiControlGet EnergyPerRun
-    GuiControlGet AvailableEnergy
+;    GuiControlGet AvailableEnergy
     ;GuiControlGet MaxRuns
     ;MsgBox, % "X" EnergyPerRun "X" 
-    MsgBox, % "X" AvailableEnergy "X" 
+;   MsgBox, % "X" AvailableEnergy "X" 
     ;MsgBox, % "X" MaxRuns "X" 
-}
+;}
 
-stopOnRunLimit(){
-}
+;stopOnRunLimit(){
+;}
 
 imageScanner(section="items", doClick=true, delay=0){
 
@@ -187,6 +186,9 @@ imageScanner(section="items", doClick=true, delay=0){
             return true
         }
     }
+    if(section == "replay")
+        SB_SetText( "Waiting for end of round...")
+    
     return false     
 }
 
@@ -200,13 +202,13 @@ hasItemToSell(){
 
 sellItem(delayTime=1000){
     CoordMode Pixel
-    
+    SB_SetText("Selling Item")
     imageScanner("items", true, delayTime)
-    
+    SB_SetText("Found Item")
     imageScanner("coins", true, delayTime)
-    
+    SB_SetText("Found Coin 1")
     imageScanner("coins", true, delayTime)
-
+    SB_SetText("Found Coin 2")
     return true
 }
 

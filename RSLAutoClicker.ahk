@@ -10,16 +10,19 @@ SetBatchLines -1
 ;##########################################################################################################<< EOF Includes
 ;##########################################################################################################>> Presets
 GDIP_Startup()
-global HB_Button:=[]
+global HB_Button:=[], beepHz:=2000
 StatusBaseText := "Press 'Activate' to run programm..."
-windowName := "Main"
+windowName := 1
+Ico := "images\rslClick.ico"
+version := "v1.0.1"
 ;##########################################################################################################<< EOF Presets
 
 
 ;##########################################################################################################>> GUI 
-Gui Main: New, +LabelMain +hWndhMainWnd -MaximizeBox
+Menu,Tray,Icon,%Ico%
+Gui %windowName%: New, +LabelMain +hWndhMainWnd -MaximizeBox
 Gui, Color, 333333
-Gui, Main:+AlwaysOnTop
+Gui, %windowName%:+AlwaysOnTop
 
 ; Allow Selling
 allowSelling := New Flat_Switch(x := 10, y := 10, w := 120, Text := "Sell Items", Font:="Arial", FontSize:= "12 Bold", FontColor:="FFFFFF", Window := windowName, Background_Color := "333333", State := 0, Label := "allowSelling")
@@ -28,85 +31,129 @@ topWindow := New Flat_Switch(x := 10, y += 35, w := 130, Text := "Always on top"
 ; Stop if energy is empty
 noEnergy := New Flat_Switch(10, 120, w := 170, Text := "Stop on empty Energy", Font:="Arial", FontSize:= "12 Bold", FontColor:="FFFFFF", Window := windowName, Background_Color := "333333", State := 0, Label := "NoEnergy")
 ; Limit rounds
-runLimit := New Flat_Switch(60, 200, w := 130, Text := "Limit Runs", Font:="Arial", FontSize:= "12 Bold", FontColor:="FFFFFF", Window := windowName, Background_Color := "333333", State := 0, Label := "LimitRun")
+runLimit := New Flat_Switch(80, 200, w := 105, Text := "Limit Runs", Font:="Arial", FontSize:= "12 Bold", FontColor:="FFFFFF", Window := windowName, Background_Color := "333333", State := 0, Label := "LimitRun")
 
 ; Activate Button
 HB_Button.Push( New Flat_Button( x:=147  , y := 8 , w := 80, h := 30 , Button_Color := "865ABB" , Button_Background_Color := "333333" , Text := "Activate" , Font := "Arial" , Font_Size := 10 " Bold" , Font_Color_Top := "888888" , Font_Color_Bottom := "111111" , Window := windowName, Label := "BtnActivate" , Default_Button := 1 , Roundness:=2 ) )
 ; Disable Button
 HB_Button.Push( New Flat_Button( x:=147  , y +=35 , w := 80, h := 30 , Button_Color := "865ABB" , Button_Background_Color := "333333" , Text := "Deactivate" , Font := "Arial" , Font_Size := 10 " Bold" , Font_Color_Top := "888888" , Font_Color_Bottom := "111111" , Window := windowName , Label := "BtnDeActivate" , Default_Button := 1 , Roundness:=2 ) )
 ; Resize Raid Window
-HB_Button.Push( New Flat_Button( x:=10  , y +=35  , w := 130, h := 30 , Button_Color := "865ABB" , Button_Background_Color := "333333" , Text := "Set Solution 1600x900" , Font := "Arial" , Font_Size := 10 " Bold" , Font_Color_Top := "888888" , Font_Color_Bottom := "111111" , Window := windowName , Label := "ResizeWindow" , Default_Button := 1 , Roundness:=2 ) )
+HB_Button.Push( New Flat_Button( x:=10  , y +=35  , w := 65, h := 30 , Button_Color := "865ABB" , Button_Background_Color := "333333" , Text := "1600x900" , Font := "Arial" , Font_Size := 10 " Bold" , Font_Color_Top := "888888" , Font_Color_Bottom := "111111" , Window := windowName , Label := "ResizeWindow" , Default_Button := 1 , Roundness:=2 ) )
+; sell Item
+HB_Button.Push( New Flat_Button( x:=147  , y, w := 38, h := 30 , Button_Color := "865ABB" , Button_Background_Color := "333333" , Text := "Sell" , Font := "Arial" , Font_Size := 10 " Bold" , Font_Color_Top := "888888" , Font_Color_Bottom := "111111" , Window := windowName , Label := "Sell" , Default_Button := 1 , Roundness:=2 ) )
+;
+HB_Button.Push( New Flat_Button( x:=189  , y, w := 38, h := 30 , Button_Color := "865ABB" , Button_Background_Color := "333333" , Text := "Res" , Font := "Arial" , Font_Size := 10 " Bold" , Font_Color_Top := "888888" , Font_Color_Bottom := "111111" , Window := windowName , Label := "GetRes" , Default_Button := 1 , Roundness:=2 ) )
 
-;Gui Add, Edit, x10 y150 w45 h18 Right number Limit5 vMyEdit, 8
-Gui Add, Edit, x10 y150 w45 h18 vMyEdit, 10
+
+Gui Add, Edit, x10 y150 w65 h18 Right number Limit2 vEnergyPerRun disabled 
+Gui, Add, UpDown,Range4-18,8
 Gui, Font, bold s10, Arial
-Gui Add, Text, x60 y151 w100 cFFFFFF, Energy / Run
+Gui Add, Text, x80 y151 w100 cFFFFFF, Energy / Run
+Gui, Font, bold s8, Arial
+Gui Add, Text, x80 y85 w60 c777777 center vCurrentRes, 1000x1000
 Gui, Font
-Gui Add, Edit, x10 y175 w45 h18 Right number Limit5 vAvailableEnergy, 130
+
+Gui Add, Edit, x10 y175 w65 h18 Right number Limit5 vAvailableEnergy disabled
+Gui, Add, UpDown, Range1-99999,130
 Gui, Font, bold s10, Arial
-Gui Add, Text, x60 y176 w150 cFFFFFF, Available Energy
+Gui Add, Text, x80 y176 w150 cFFFFFF, Available Energy
 Gui, Font
-Gui Add, Edit, x10 y200 w45 h18 Right number Limit5 vMaxRuns disabled, 0
+
+Gui Add, Edit, x10 y200 w65 h18 Right number Limit5 vMaxRuns disabled
+Gui, Add, UpDown,,7
+Gui Add, Text, x180 y200 w50 h40 right, %version%`rby Dwza
 
 Gui Add, StatusBar,, %StatusBaseText%
 
-Gui Show, w240 h255, RSL AutoClicker
+Gui Show, w240 h255, RSL-Tool
 
 ;SetTimer, HB_Button_Hover, 50
 Return
 ;##########################################################################################################<< EOF GUI
 ;##########################################################################################################>> Logics
 AllowSelling:
-    SoundBeep, 3000
-    ;MsgBox, % allowSelling.State
+    beep()
+    return
+
+GetRes:
+    WinGetPos, X, Y, Width, Height, ahk_exe Raid.exe
+    GuiControl,,CurrentRes, % Width "x" Height
+    return
+
+Sell:
+openRaidWindow()
+sellItem()
+Sleep, 2000
+beep(3000, 500)
+SB_SetText(StatusBaseText)
 return
 
 AlwaysOnTop:
-if(topWindow.State=1)
-    Gui, Main:+AlwaysOnTop
-else
-    Gui, Main:-AlwaysOnTop
-return
+    beep()
+    if(topWindow.State=1)
+        Gui, %windowName%:+AlwaysOnTop
+    else
+        Gui, %windowName%:-AlwaysOnTop
+    return
+    
 NoEnergy:
-    SoundBeep, 3000
-return
+    beep()
+    if(noEnergy.State == 1){
+        GuiControl, enable, EnergyPerRun
+        GuiControl, enable, AvailableEnergy
+    }else{
+        GuiControl, disable, EnergyPerRun
+        GuiControl, disable, AvailableEnergy
+    }
+    if(noEnergy.State == 1 && runLimit.State == 1){
+        runLimit.Switch_State()
+    }
+    return
 
 LimitRun:
-if(runLimit.State == 1){
-    GuiControl, enable, MaxRuns
-}else{
-    GuiControl, disable, MaxRuns
-}
-return
+    
+    beep()
+    if(runLimit.State == 1){
+        GuiControl, enable, MaxRuns
+    }else{
+        GuiControl, disable, MaxRuns
+    }
+    if(noEnergy.State == 1 && runLimit.State == 1){
+        NoEnergy.Switch_State()
+    }
+    return
 
 F1::
-GuiControlGet, MyEdit
-MsgBox, % "x" MyEdit "x"
-return
+    SoundBeep, 3000, 1000
+    return
 
 ResizeWindow:
-GuiControl , % HB_Button[ A_GuiControl ].Window ": Focus" , % HB_Button[ A_GuiControl ].Hwnd
+    GuiControl , % HB_Button[ A_GuiControl ].Window ": Focus" , % HB_Button[ A_GuiControl ].Hwnd
     ; Add the button press function call and test
     if( ! HB_Button[ A_GuiControl ].Draw_Pressed() )
         return  
-WinMove, ahk_exe Raid.exe, , , , 1600, 900
-return
+    WinMove, ahk_exe Raid.exe, , , , 1600, 900
+    return
 
 BtnDeActivate:
-GuiControl , % HB_Button[ A_GuiControl ].Window ": Focus" , % HB_Button[ A_GuiControl ].Hwnd
+    
+    GuiControl , % HB_Button[ A_GuiControl ].Window ": Focus" , % HB_Button[ A_GuiControl ].Hwnd
     ; Add the button press function call and test
     if( ! HB_Button[ A_GuiControl ].Draw_Pressed() )
         return  
-!A::
-BreakLoop = 1
-return
+    beep(3000, 500)
+    BreakLoop = 1
+    
+    return
 
 BtnActivate:
+    
     GuiControl , % HB_Button[ A_GuiControl ].Window ": Focus" , % HB_Button[ A_GuiControl ].Hwnd
     ; Add the button press function call and test
     if( ! HB_Button[ A_GuiControl ].Draw_Pressed() )
         return 
     
+    beep(6000, 500)
     loop
     {
         if (BreakLoop == 1) {
@@ -115,10 +162,29 @@ BtnActivate:
             break
         }
         
+        
+        
         if WinActive("ahk_exe Raid.exe"){
             if roundEnd() {
+                
+                if(noEnergy.State == 1){
+                    if(stopOnEnergyLimit()){
+                        beep(3000, 500)
+                        SB_SetText("Energy is empty")
+                        break
+                    }
+                }
+    
+                if(runLimit.State == 1){
+                    if(stopOnRunLimit()){
+                        beep(3000, 500)
+                        SB_SetText("Limit reached. Programm stopped.")
+                        break
+                    }
+                }
+                
                 if (allowSelling.State == 1 && hasItemToSell()){
-                    if (!sellItem()){
+                    if (!sellItem(500)){
                         showTrayTip("Item could not be sold. Abort loop.")
                         break
                     }
@@ -135,7 +201,7 @@ BtnActivate:
         
         sleep, 2000
     }
-return
+    return
 
 ;##########################################################################################################<< EOF Logics
 ;##########################################################################################################>> Functions
@@ -144,41 +210,48 @@ nextRound() {
     SB_SetText("Called next Round")
 }
 
-;limits(){
-;    if(noEnergy.State ==1){
-;     stopOnEnergyLimit()
-;    }
-;    
-;    if(runLimit.State == 1){
-;        stopOnRunLimit()
-;    }
-;}
+beep(Hz:=2000, duration:=10){
+    
+    SoundBeep, % Hz, % duration
+}
 
-;stopOnEnergyLimit(){
-;    Gui, Submit, NoHide
-    ;GuiControlGet, xxx,, EnergyPerRun
-    ;GuiControlGet, available, AvailableEnergy
-    ;GuiControlGet, max, MaxRuns
-    ;GuiControlGet EnergyPerRun
-;    GuiControlGet AvailableEnergy
-    ;GuiControlGet MaxRuns
-    ;MsgBox, % "X" EnergyPerRun "X" 
-;   MsgBox, % "X" AvailableEnergy "X" 
-    ;MsgBox, % "X" MaxRuns "X" 
-;}
+stopOnEnergyLimit(){
+    GuiControlGet, EnergyPerRun
+    GuiControlGet, AvailableEnergy
+    restEnergy := AvailableEnergy-EnergyPerRun
+    
+    if(AvailableEnergy < EnergyPerRun){
+        return true
+    }
 
-;stopOnRunLimit(){
-;}
+    GuiControl, Text, AvailableEnergy, % restEnergy
+    return false
+}
+
+stopOnRunLimit(){
+    GuiControlGet, MaxRuns
+    
+    if(MaxRuns <= 0){
+        return true
+    }
+    GuiControl, Text, MaxRuns, % --MaxRuns
+    return false
+}
 
 imageScanner(section="items", doClick=true, delay=0){
 
     Loop, Files, images\%section%\*.png 
     {
-        ImageSearch x, y, 0, 0, A_ScreenWidth, A_ScreenHeight, %A_LoopFilePath%
+        ImageSearch xCoord, yCoord, 0, 0, A_ScreenWidth, A_ScreenHeight, %A_LoopFilePath%
            
-        if(x && y){
+        if(xCoord && yCoord){
+            
+            imageData := GetImageSize(A_LoopFilePath)
+            addX := Round(imageData.w/2)
+            addY := Round(imageData.h/2)
+            
             if(doClick)
-                MouseClick, Left, x+30, y+30
+                MouseClick, Left, xCoord+addX, yCoord+addY
                 
             if(delay)
                 sleep, delay
@@ -186,10 +259,17 @@ imageScanner(section="items", doClick=true, delay=0){
             return true
         }
     }
+    
     if(section == "replay")
         SB_SetText( "Waiting for end of round...")
     
     return false     
+}
+
+GetImageSize(img){
+    pBM := Gdip_CreateBitmapFromFile( img )
+    image := {w: Gdip_GetImageWidth( pBM ), h:  Gdip_GetImageHeight( pBM )}
+    return image
 }
 
 roundEnd(){
@@ -200,14 +280,28 @@ hasItemToSell(){
     return imageScanner("items", false)
 }
 
-sellItem(delayTime=1000){
-    CoordMode Pixel
+sellItem(delayTime:=1000){
+    CoordMode, Pixel, Relative
     SB_SetText("Selling Item")
-    imageScanner("items", true, delayTime)
+    if (!imageScanner("items", true, delayTime)){
+        beep(1000,200)
+        SB_SetText("No Item found")
+        return false
+    }
     SB_SetText("Found Item")
-    imageScanner("coins", true, delayTime)
+    
+    if (!imageScanner("coins", true, delayTime)){
+        beep(1000,200)
+        SB_SetText("Coin 1 not found")
+        return false
+    }
     SB_SetText("Found Coin 1")
-    imageScanner("coins", true, delayTime)
+    
+    if (!imageScanner("coins", true, delayTime)){
+        beep(1000, 200)
+        SB_SetText("Coin 2 not found")
+        return false
+    }
     SB_SetText("Found Coin 2")
     return true
 }

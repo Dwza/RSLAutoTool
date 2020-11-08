@@ -427,6 +427,75 @@ Gdip_FillPolygon(pGraphics, pBrush, Points, FillMode=0){
     }
     return DllCall("gdiplus\GdipFillPolygon", Ptr, pGraphics, Ptr, pBrush, Ptr, &PointF, "int", Points0, "int", FillMode)
 }
+Gdip_CreateBitmapFromFile(sFile, IconNumber=1, IconSize="")
+{
+	SplitPath, sFile,,, ext
+	if ext in exe,dll
+	{
+		Sizes := IconSize ? IconSize : 256 "|" 128 "|" 64 "|" 48 "|" 32 "|" 16
+		VarSetCapacity(buf, 40)
+		Loop, Parse, Sizes, |
+		{
+			DllCall("PrivateExtractIcons", "str", sFile, "int", IconNumber-1, "int", A_LoopField, "int", A_LoopField, "uint*", hIcon, "uint*", 0, "uint", 1, "uint", 0)
+			if !hIcon
+				continue
+
+			if !DllCall("GetIconInfo", "uint", hIcon, "uint", &buf)
+			{
+				DestroyIcon(hIcon)
+				continue
+			}
+			hbmColor := NumGet(buf, 16)
+			hbmMask  := NumGet(buf, 12)
+
+			if !(hbmColor && DllCall("GetObject", "uint", hbmColor, "int", 24, "uint", &buf))
+			{
+				DestroyIcon(hIcon)
+				continue
+			}
+			break
+		}
+		if !hIcon
+			return -1
+
+		Width := NumGet(buf, 4, "int"),  Height := NumGet(buf, 8, "int")
+		hbm := CreateDIBSection(Width, -Height), hdc := CreateCompatibleDC(), obm := SelectObject(hdc, hbm)
+
+		if !DllCall("DrawIconEx", "uint", hdc, "int", 0, "int", 0, "uint", hIcon, "uint", Width, "uint", Height, "uint", 0, "uint", 0, "uint", 3)
+		{
+			DestroyIcon(hIcon)
+			return -2
+		}
+
+		VarSetCapacity(dib, 84)
+		DllCall("GetObject", "uint", hbm, "int", 84, "uint", &dib)
+		Stride := NumGet(dib, 12), Bits := NumGet(dib, 20)
+
+		DllCall("gdiplus\GdipCreateBitmapFromScan0", "int", Width, "int", Height, "int", Stride, "int", 0x26200A, "uint", Bits, "uint*", pBitmapOld)
+		pBitmap := Gdip_CreateBitmap(Width, Height), G := Gdip_GraphicsFromImage(pBitmap)
+		Gdip_DrawImage(G, pBitmapOld, 0, 0, Width, Height, 0, 0, Width, Height)
+		SelectObject(hdc, obm), DeleteObject(hbm), DeleteDC(hdc)
+		Gdip_DeleteGraphics(G), Gdip_DisposeImage(pBitmapOld)
+		DestroyIcon(hIcon)
+	}
+	else
+	{
+		if !A_IsUnicode
+		{
+			VarSetCapacity(wFile, 1023)
+			DllCall("kernel32\MultiByteToWideChar", "uint", 0, "uint", 0, "uint", &sFile, "int", -1, "uint", &wFile, "int", 512)
+			DllCall("gdiplus\GdipCreateBitmapFromFile", "uint", &wFile, "uint*", pBitmap)
+		}
+		else
+			DllCall("gdiplus\GdipCreateBitmapFromFile", "uint", &sFile, "uint*", pBitmap)
+	}
+	return pBitmap
+}
+
+DestroyIcon(hIcon)
+{
+   return DllCall("DestroyIcon", "uint", hIcon)
+}
 ;#####################################################################################
 ; Default = 0
 ; LowQuality = 1

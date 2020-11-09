@@ -4,7 +4,8 @@
 SetWorkingDir %A_ScriptDir%
 SetBatchLines -1
 ;##########################################################################################################>> Includes
-#Include src\libs\GDip.ahk
+#Include src\libs\GDip_All.ahk
+#Include src\libs\Helper.ahk
 #Include src\utils\flatSwitch.ahk
 #Include src\utils\flatButton.ahk
 ;##########################################################################################################<< EOF Includes
@@ -43,6 +44,8 @@ HB_Button.Push( New Flat_Button( x:=10  , y +=35  , w := 65, h := 30 , Button_Co
 HB_Button.Push( New Flat_Button( x:=147  , y, w := 38, h := 30 , Button_Color := "865ABB" , Button_Background_Color := "333333" , Text := "Sell" , Font := "Arial" , Font_Size := 10 " Bold" , Font_Color_Top := "888888" , Font_Color_Bottom := "111111" , Window := windowName , Label := "Sell" , Default_Button := 1 , Roundness:=2 ) )
 ;
 HB_Button.Push( New Flat_Button( x:=189  , y, w := 38, h := 30 , Button_Color := "865ABB" , Button_Background_Color := "333333" , Text := "Res" , Font := "Arial" , Font_Size := 10 " Bold" , Font_Color_Top := "888888" , Font_Color_Bottom := "111111" , Window := windowName , Label := "GetRes" , Default_Button := 1 , Roundness:=2 ) )
+; Take Image for Selling
+;HB_Button.Push( New Flat_Button( x:=189 , y += 35, w := 38, h := 30 , Button_Color := "865ABB" , Button_Background_Color := "333333" , Text := "S" , Font := "Arial" , Font_Size := 10 " Bold" , Font_Color_Top := "888888" , Font_Color_Bottom := "111111" , Window := windowName , Label := "SellingImage" , Default_Button := 1 , Roundness:=2 ) )
 
 
 Gui Add, Edit, x10 y150 w65 h18 Right number Limit2 vEnergyPerRun disabled 
@@ -71,6 +74,33 @@ Gui Show, w240 h255, RSL-Tool
 Return
 ;##########################################################################################################<< EOF GUI
 ;##########################################################################################################>> Logics
+
+!q::
+CoordMode, Mouse, Screen
+DetectHiddenWindows, On
+InputRect(vWinX, vWinY, vWinR, vWinB)
+vWinW := vWinR-vWinX, vWinH := vWinB-vWinY
+if (vInputRectState = -1)
+	return
+
+vScreen := vWinX "|" vWinY "|" vWinW "|" vWinH
+pToken := Gdip_Startup()
+pBitmap := Gdip_BitmapFromScreen(vScreen, 0x40CC0020)
+DllCall("gdiplus\GdipCreateHBITMAPFromBitmap", Ptr,pBitmap, PtrP,hBitmap, Int,0xffffffff)
+
+;SplashImage, % "HBITMAP:" hBitmap, B
+SplashImage, % "HBITMAP:" hBitmap, 
+
+SavePicture(hBitmap, "images\" A_Now ".png")
+
+Sleep, 2000
+SplashImage, Off
+
+DeleteObject(hBitmap)
+Gdip_DisposeImage(pBitmap)
+Gdip_Shutdown(pToken)
+return
+
 AllowSelling:
     beep()
     return
